@@ -1,6 +1,6 @@
 import { StatusBar } from 'expo-status-bar';
 import React, {ForwardedRef, RefObject} from 'react';
-import {StyleSheet, Text, View, Dimensions, FlatList, Animated, Image, findNodeHandle} from 'react-native';
+import {StyleSheet, Text, View, Dimensions, Animated, Image, findNodeHandle} from 'react-native';
 import WithAnimatedObject = Animated.WithAnimatedObject;
 
 const {width, height} = Dimensions.get('screen')
@@ -24,13 +24,13 @@ type DataType = {
   key: string
   title: string
   image: string
-  ref: RefObject<View>
+  ref: any
 }
 const data: WithAnimatedObject<DataType>[] = Object.keys(images).map((i) => ({
   key: i,
   title: i,
   image: images[i],
-  ref: React.createRef()
+  ref: React.createRef(),
 }));
 
 type TabPropsType = {
@@ -64,7 +64,7 @@ const Indicator = ({measures, scrollX}: IndicatorPropsType) => {
 
   const translateX = scrollX.interpolate({
     inputRange,
-    outputRange: measures.map((measure: any) => measure.x)
+    outputRange: measures.map((measure) => measure.x)
   })
   return <Animated.View style={{
     position: 'absolute',
@@ -78,6 +78,7 @@ const Indicator = ({measures, scrollX}: IndicatorPropsType) => {
     ]
   }}/>
 }
+
 
 type TabsPropsType = {
   data: WithAnimatedObject<DataType>[]
@@ -95,10 +96,11 @@ type MeasuresType = {
 const Tabs = ({data, scrollX}: TabsPropsType) => {
   const [measures, setMeasures] = React.useState<MeasuresType[]>([])
 
-  const containerRef = React.useRef<any>()
+  const containerRef = React.useRef<View | null>(null)
   React.useEffect(() => {
     let m: MeasuresType[] = []
-    data.forEach((item1: any) => {
+    data.forEach((item1) => {
+      if (item1 && item1.ref)
       item1.ref.current.measureLayout(
           containerRef.current,
           (x: number,y: number,width: number, height: number) => {
@@ -114,13 +116,6 @@ const Tabs = ({data, scrollX}: TabsPropsType) => {
           })
     })
   },[])
-  console.log('render')
-  console.log('render', measures.length)
-  console.log('render', measures.length > 0)
-  //console.log(measures)
-
-  //if (measures.length < 1) return (<View><View><Text>Loading....</Text></View></View>)
-
   return <View style={{position: 'absolute', top: 100, width}}>
     <View
         ref={containerRef}
