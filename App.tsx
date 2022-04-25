@@ -1,5 +1,5 @@
 import {StatusBar} from 'expo-status-bar';
-import React from 'react';
+import React, {useRef} from 'react';
 import {
     StyleSheet,
     Text,
@@ -8,7 +8,7 @@ import {
     Animated,
     Image,
     LayoutChangeEvent,
-    useColorScheme
+    useColorScheme, FlatList, TouchableOpacity
 } from 'react-native';
 import WithAnimatedObject = Animated.WithAnimatedObject;
 
@@ -47,18 +47,25 @@ const data: WithAnimatedObject<DataType>[] = Object.keys(images).map((i) => ({
 
 type TabPropsType = {
     item: WithAnimatedObject<DataType>
+    onItemPress: () => void
 }
 
 
-const Tab = React.forwardRef<View, TabPropsType>(({item}: TabPropsType, ref) => {
-    return <View ref={ref}>
-        <Text style={{
-            color: 'white',
-            fontSize: 84 / data.length,
-            fontWeight: '800',
-            textTransform: 'uppercase'
-        }}>{item.title}</Text>
-    </View>
+const Tab = React.forwardRef<View, TabPropsType>(({item, onItemPress}: TabPropsType, ref) => {
+    return (
+        <TouchableOpacity  onPress={onItemPress}>
+            <View ref={ref}>
+                <Text style={{
+                    color: 'white',
+                    fontSize: 84 / data.length,
+                    fontWeight: '800',
+                    textTransform: 'uppercase'
+                }}>
+                    {item.title}
+                </Text>
+            </View>
+        </TouchableOpacity>
+    )
 })
 
 type IndicatorPropsType = {
@@ -98,6 +105,7 @@ const Indicator = ({measures, scrollX}: IndicatorPropsType) => {
 type TabsPropsType = {
     data: WithAnimatedObject<DataType>[]
     scrollX: Animated.Value
+    onItemPress: (itemIndex: number) => void
 }
 
 type MeasuresType = {
@@ -108,7 +116,7 @@ type MeasuresType = {
 }
 
 
-const Tabs = ({data, scrollX}: TabsPropsType) => {
+const Tabs = ({data, scrollX, onItemPress}: TabsPropsType) => {
     const [measures, setMeasures] = React.useState<MeasuresType[]>([])
 
     const containerRef = React.useRef<View | null>(null)
@@ -136,7 +144,7 @@ const Tabs = ({data, scrollX}: TabsPropsType) => {
     // },[])
 
     const getLayout = (event: LayoutChangeEvent) => {
-        console.log('setMeasure')
+        //console.log('setMeasure')
         m.push({
             x: event.nativeEvent.layout.x,
             y: event.nativeEvent.layout.y,
@@ -161,9 +169,9 @@ const Tabs = ({data, scrollX}: TabsPropsType) => {
             ref={containerRef}
             style={{justifyContent: 'space-evenly', flex: 1, flexDirection: 'row'}}
         >
-            {data.map((item) => {
+            {data.map((item,index) => {
                 return (<View key={item.key.toString()} onLayout={getLayout}>
-                        <Tab item={item} ref={item.ref}/>
+                        <Tab item={item} ref={item.ref} onItemPress={() => onItemPress(index)}/>
                     </View>
 
                 )
@@ -176,10 +184,21 @@ const Tabs = ({data, scrollX}: TabsPropsType) => {
 
 export default function App() {
     const scrollX = React.useRef(new Animated.Value(0)).current
+    const ref = useRef<FlatList<WithAnimatedObject<DataType>> | null>(null)
+
+    const onItemPress = React.useCallback((itemIndex) => {
+        if (ref && ref.current) {
+            ref.current?.scrollToOffset({
+                offset: itemIndex * width
+            })
+        }
+    }, [])
+
     return (
         <View style={styles.container}>
             <StatusBar hidden/>
             <Animated.FlatList
+                ref={ref}
                 data={data}
                 keyExtractor={item => item.key.toString()}
                 horizontal
@@ -200,7 +219,7 @@ export default function App() {
                     </View>
                 }}
             />
-            <Tabs data={data} scrollX={scrollX}/>
+            <Tabs data={data} scrollX={scrollX} onItemPress={onItemPress}/>
         </View>
     );
 }
