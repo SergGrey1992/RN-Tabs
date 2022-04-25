@@ -121,30 +121,9 @@ const Tabs = ({data, scrollX, onItemPress}: TabsPropsType) => {
 
     const containerRef = React.useRef<View | null>(null)
     let m: MeasuresType[] = []
-    // React.useEffect(() => {
-    //   data.forEach((item1) => {
-    //     if (item1 && item1.ref)
-    //     item1.ref.current.measureLayout(
-    //         containerRef.current,
-    //         (x: number,y: number,width: number, height: number) => {
-    //           if (containerRef.current) {
-    //             m.push({
-    //               x, y, width, height
-    //             })
-    //             if (m.length === data.length) {
-    //               console.log('m.length === data.length')
-    //               //console.log('m', m)
-    //               //setMeasures(m)
-    //             }
-    //           }
-    //         })
-    //
-    //   })
-    //
-    // },[])
 
     const getLayout = (event: LayoutChangeEvent) => {
-        //console.log('setMeasure')
+
         m.push({
             x: event.nativeEvent.layout.x,
             y: event.nativeEvent.layout.y,
@@ -152,18 +131,13 @@ const Tabs = ({data, scrollX, onItemPress}: TabsPropsType) => {
             width: event.nativeEvent.layout.width,
         })
         if (m.length === data.length) {
-            //console.log('m.length === data.length')
-            //console.log('m', m)
             const sorting = m
                 .sort((a, b) => a.x - b.x)
                 .map((el) => el)
-            //console.log('sorting', sorting)
             setMeasures(sorting)
         }
 
     }
-    //console.log('measures', measures)
-    //console.log('render')
     return <View style={{position: 'absolute', top: 100, width: data.length > 5 ? (width * 1.2) : width}}>
         <View
             ref={containerRef}
